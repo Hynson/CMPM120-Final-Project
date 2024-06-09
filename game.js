@@ -41,7 +41,7 @@ let gameOptions = {
     coinPercent: 25,
 
     // % of probability a fire appears on the platform
-    firePercent: 25
+    firePercent: 25,
 }
 
 window.onload = function() {
@@ -52,7 +52,6 @@ window.onload = function() {
         width: 1334,
         height: 750,
         scene: [preloadGame, playGame],
-        backgroundColor: 0x0c88c7,
 
         // physics settings
         physics: {
@@ -71,7 +70,11 @@ class preloadGame extends Phaser.Scene{
         super("PreloadGame");
     }
     preload(){
+        this.load.setPath("./assets/");
+
         this.load.image("platform", "platform.png");
+        
+        this.load.image("bg","bg.png");
 
         // player is a sprite sheet made by 24x48 pixels
         this.load.spritesheet("player", "player.png", {
@@ -96,6 +99,8 @@ class preloadGame extends Phaser.Scene{
             frameWidth: 512,
             frameHeight: 512
         });
+
+        
     }
     create(){
 
@@ -143,6 +148,10 @@ class playGame extends Phaser.Scene{
         super("PlayGame");
     }
     create(){
+
+        //const {width, height} = this.scale;
+        this.bg = this.add.tileSprite(0,0,game.config.width,game.config.height,"bg").setScale(2);
+
 
         // group with all active mountains.
         this.mountainGroup = this.add.group();
@@ -259,8 +268,10 @@ class playGame extends Phaser.Scene{
 
         }, null, this);
 
+        
+        
         // checking for input
-        this.input.on("pointerdown", this.jump, this);
+        this.input.keyboard.on("keydown_SPACE", this.jump, this);
     }
 
     // adding mountains
@@ -378,6 +389,7 @@ class playGame extends Phaser.Scene{
 
     update(){
 
+        this.bg.tilePositionX += 0.05;
         // game over
         if(this.player.y > game.config.height){
             this.scene.start("PlayGame");
