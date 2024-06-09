@@ -128,6 +128,11 @@ class preloadGame extends Phaser.Scene{
             frameHeight: 48
         });
 
+        this.load.image("shield", "shield3.png",{
+            frameWidth: 15,
+            frameHeight: 30
+        });
+
         // the coin is a sprite sheet made by 20x20 pixels
         this.load.spritesheet("coin", "coin.png", {
             frameWidth: 20,
@@ -193,6 +198,10 @@ class playGame extends Phaser.Scene{
     constructor(){
         super("PlayGame");
         this.my = {sprite: {}, text: {}};
+        
+        this.coinCounter =  0;
+
+        this.shieldCounter =  0;
     }
     create(){
 
@@ -277,6 +286,11 @@ class playGame extends Phaser.Scene{
         this.player = this.physics.add.sprite(gameOptions.playerStartPosition, game.config.height * 0.7, "player");
         this.player.setGravityY(gameOptions.playerGravity);
         this.player.setDepth(2);
+
+        this.shield = this.add.sprite(this.player.x, this.player.y, 'shield');
+        this.shield.setScale(0.70);
+        this.shield.setDepth(2);
+        this.shield.visible = false;
 
         // the player is not dying
         this.dying = false;
@@ -450,6 +464,23 @@ class playGame extends Phaser.Scene{
         }
 
         this.player.x = gameOptions.playerStartPosition;
+
+        this.shield.x = this.player.x;
+        this.shield.y = this.player.y;
+
+        
+
+        if(this.coinCounter = 5){
+            this.shield.visible = true;
+            this.shieldCounter += 1
+        }
+        else{
+            this.shield.visible = false;
+        }
+
+        if(this.shieldCounter >= 1){
+
+        }
 
         // recycling platforms
         let minDistance = game.config.width;
