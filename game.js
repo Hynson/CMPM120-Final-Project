@@ -51,7 +51,7 @@ window.onload = function() {
         type: Phaser.AUTO,
         width: 1334,
         height: 750,
-        scene: [preloadGame, playGame],
+        scene: [gameStart, preloadGame, playGame, gameEnd],
 
         // physics settings
         physics: {
@@ -62,6 +62,50 @@ window.onload = function() {
     window.focus();
     resize();
     window.addEventListener("resize", resize, false);
+}
+
+class gameStart extends Phaser.Scene {
+    constructor(){
+        super("gameStart");
+        this.my = {sprite: {}, text: {}};
+        
+    }
+
+    preload(){
+        this.load.setPath("./assets/");
+
+        this.load.bitmapFont("rocketSquare", "KennyRocketSquare_0.png", "KennyRocketSquare.fnt");
+
+        this.load.image("bg","bg.png");
+    }
+
+    create(){
+        let my = this.my;
+        this.bg = this.add.tileSprite(0,0,game.config.width,game.config.height,"bg").setScale(2);
+        const name = this.add.bitmapText(285, 180, "rocketSquare", "Elijah Hynson's", 20);
+        const title = this.add.bitmapText(230, 200, "rocketSquare", "Volitaire", 50);
+        const objective = this.add.bitmapText(85, 300, "rocketSquare", "Wreak havoc on your virtual enemies for as long as possible.", 15);
+        const controls = this.add.bitmapText(85, 350, "rocketSquare", "A to move left    D to move right", 15);
+        
+        const controlsTwo = this.add.bitmapText(85, 380, "rocketSquare", "Space to fire, (While missile is flying) Space again to split!", 15);
+        const start = this.add.bitmapText(85, 450, "rocketSquare", "Press SPACE to begin the simulation",25);
+        name.setBlendMode(Phaser.BlendModes.ADD);
+        title.setBlendMode(Phaser.BlendModes.ADD);
+        objective.setBlendMode(Phaser.BlendModes.ADD);
+        controls.setBlendMode(Phaser.BlendModes.ADD);
+        controlsTwo.setBlendMode(Phaser.BlendModes.ADD);
+        start.setBlendMode(Phaser.BlendModes.ADD);
+        this.input.keyboard.on("keydown_SPACE", this.nextScene, this);
+    }
+
+    nextScene(){
+      this.scene.start("PreloadGame");
+    }
+
+    update(){
+
+    }
+    
 }
 
 // preloadGame scene
@@ -75,6 +119,8 @@ class preloadGame extends Phaser.Scene{
         this.load.image("platform", "platform.png");
         
         this.load.image("bg","bg.png");
+
+        this.load.bitmapFont("rocketSquare", "KennyRocketSquare_0.png", "KennyRocketSquare.fnt");
 
         // player is a sprite sheet made by 24x48 pixels
         this.load.spritesheet("player", "player.png", {
@@ -146,12 +192,17 @@ class preloadGame extends Phaser.Scene{
 class playGame extends Phaser.Scene{
     constructor(){
         super("PlayGame");
+        this.my = {sprite: {}, text: {}};
     }
     create(){
 
-        //const {width, height} = this.scale;
+        //Creates green checkered bg layer
         this.bg = this.add.tileSprite(0,0,game.config.width,game.config.height,"bg").setScale(2);
 
+        //HUD
+        this.myScore = 0;
+        this.displayScore = 0;
+        this.my.text.score = this.add.bitmapText(550, 0, "rocketSquare", "Score " + this.myScore);
 
         // group with all active mountains.
         this.mountainGroup = this.add.group();
@@ -252,6 +303,9 @@ class playGame extends Phaser.Scene{
                 onComplete: function(){
                     this.coinGroup.killAndHide(coin);
                     this.coinGroup.remove(coin);
+                    this.myScore += 1;
+                    this.updateScore(this.myScore);
+
                 }
             });
 
@@ -388,11 +442,11 @@ class playGame extends Phaser.Scene{
     }
 
     update(){
-
         this.bg.tilePositionX += 0.05;
         // game over
         if(this.player.y > game.config.height){
-            this.scene.start("PlayGame");
+            this.displayScore = this.myScore;
+            this.scene.start("GameEnd", { myScore: this.displayScore });
         }
 
         this.player.x = gameOptions.playerStartPosition;
@@ -452,7 +506,52 @@ class playGame extends Phaser.Scene{
             this.addPlatform(nextPlatformWidth, game.config.width + nextPlatformWidth / 2, nextPlatformHeight);
         }
     }
-};
+
+    updateScore() {
+        let my = this.my;
+        my.text.score.setText("Score " + this.myScore);
+    }
+}
+
+class gameEnd extends Phaser.Scene {
+    constructor(){
+        super("GameEnd");
+        this.my = {sprite: {}, text: {}};
+    }
+    preload(){
+        this.load.setPath("./assets/");
+
+        this.load.bitmapFont("rocketSquare", "KennyRocketSquare_0.png", "KennyRocketSquare.fnt");
+
+        this.load.image("bg","bg.png");
+    }
+    init (data)
+    {
+        console.log('init', data);
+
+        this.finalScore = data.myScore;
+    }
+    create(){
+        this.bg = this.add.tileSprite(0,0,game.config.width,game.config.height,"bg").setScale(2);
+        //this.scene.stop("volitaireGame");
+        const gameover = this.add.bitmapText(230, 200, "rocketSquare", "GAME OVER", 50);
+        const restart = this.add.bitmapText(85, 450, "rocketSquare", "Press SPACE to restart the simulation",25);
+        const score = this.add.bitmapText(230, 250, "rocketSquare", "Final Score: " + this.finalScore);
+        gameover.setBlendMode(Phaser.BlendModes.ADD);
+        restart.setBlendMode(Phaser.BlendModes.ADD);
+        score.setBlendMode(Phaser.BlendModes.ADD);
+        this.input.keyboard.on("keydown_SPACE", this.nextScene, this);
+    }
+
+    nextScene(){
+        this.scene.start("PreloadGame");
+      }
+
+    update(){
+        this.bg.tilePositionX -= 0.3;
+
+    }
+}
 function resize(){
     let canvas = document.querySelector("canvas");
     let windowWidth = window.innerWidth;
@@ -467,4 +566,7 @@ function resize(){
         canvas.style.width = (windowHeight * gameRatio) + "px";
         canvas.style.height = windowHeight + "px";
     }
-}
+};
+
+
+
