@@ -38,7 +38,7 @@ let gameOptions = {
     jumps: 2,
 
     // % of probability a coin appears on the platform
-    coinPercent: 25,
+    coinPercent: 100,
 
     // % of probability a fire appears on the platform
     firePercent: 25,
@@ -120,17 +120,14 @@ class preloadGame extends Phaser.Scene{
         
         this.load.image("bg","bg.png");
 
+        this.load.image("shield", "shield3.png",);
+
         this.load.bitmapFont("rocketSquare", "KennyRocketSquare_0.png", "KennyRocketSquare.fnt");
 
         // player is a sprite sheet made by 24x48 pixels
         this.load.spritesheet("player", "player.png", {
             frameWidth: 24,
             frameHeight: 48
-        });
-
-        this.load.image("shield", "shield3.png",{
-            frameWidth: 15,
-            frameHeight: 30
         });
 
         // the coin is a sprite sheet made by 20x20 pixels
@@ -306,20 +303,19 @@ class playGame extends Phaser.Scene{
 
         // setting collisions between the player and the coin group
         this.physics.add.overlap(this.player, this.coinGroup, function(player, coin){
-
+            this.myScore += 1;
+            this.updateScore(this.myScore);
+            this.coinCounter += 1;
             this.tweens.add({
                 targets: coin,
                 y: coin.y - 100,
                 alpha: 0,
-                duration: 800,
+                duration: 500,
                 ease: "Cubic.easeOut",
                 callbackScope: this,
                 onComplete: function(){
                     this.coinGroup.killAndHide(coin);
                     this.coinGroup.remove(coin);
-                    this.myScore += 1;
-                    this.updateScore(this.myScore);
-
                 }
             });
 
@@ -460,6 +456,7 @@ class playGame extends Phaser.Scene{
         // game over
         if(this.player.y > game.config.height){
             this.displayScore = this.myScore;
+            this.shieldCounter -= this.shieldCounter;
             this.scene.start("GameEnd", { myScore: this.displayScore });
         }
 
@@ -469,17 +466,16 @@ class playGame extends Phaser.Scene{
         this.shield.y = this.player.y;
 
         
-
-        if(this.coinCounter = 5){
-            this.shield.visible = true;
-            this.shieldCounter += 1
-        }
-        else{
-            this.shield.visible = false;
+        //Shield power-up via coin pickup
+        if(this.coinCounter >= 5){
+            this.shieldCounter += 1;
+            this.coinCounter -= this.coinCounter;
         }
 
         if(this.shieldCounter >= 1){
-
+            this.shield.visible = true;
+        } else {
+            this.shield.visible = false;
         }
 
         // recycling platforms
