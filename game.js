@@ -38,7 +38,7 @@ let gameOptions = {
     jumps: 2,
 
     // % of probability a coin appears on the platform
-    coinPercent: 100,
+    coinPercent: 25,
 
     // % of probability a fire appears on the platform
     firePercent: 25,
@@ -100,6 +100,9 @@ class gameStart extends Phaser.Scene {
 
     nextScene(){
       this.scene.start("PreloadGame");
+      this.sound.play("runStart", {
+        volume: 0.5
+    });
     }
 
     update(){
@@ -124,6 +127,28 @@ class preloadGame extends Phaser.Scene{
 
         this.load.bitmapFont("rocketSquare", "KennyRocketSquare_0.png", "KennyRocketSquare.fnt");
 
+        this.load.audio("coinCollect","confirmation_003.ogg");
+
+        this.load.audio("playerBurnt","explosionCrunch_001.ogg");
+
+        this.load.audio("crowdShock","crowdShock.ogg");
+
+        this.load.audio("playerDeath","BodyImpact1.wav");
+
+        this.load.audio("crowdSad","crowdSad.mp3");
+
+        this.load.audio("runStart","runStart.ogg");
+
+        this.load.audio("newHighScore","newHighScore.ogg");
+
+        this.load.audio("shieldUp","shieldUp.ogg");
+
+        this.load.audio("shieldDown","shieldDown.ogg");
+
+        this.load.audio("musicBurnt","musicBurnt.ogg");
+
+        this.load.audio("musicLoss","musicLoss.ogg");
+      
         // player is a sprite sheet made by 24x48 pixels
         this.load.spritesheet("player", "player.png", {
             frameWidth: 24,
@@ -303,6 +328,10 @@ class playGame extends Phaser.Scene{
 
         // setting collisions between the player and the coin group
         this.physics.add.overlap(this.player, this.coinGroup, function(player, coin){
+            this.sound.play("coinCollect", {
+                volume: 0.5
+            });
+            
             this.myScore += 1;
             this.updateScore(this.myScore);
             this.coinCounter += 1;
@@ -323,7 +352,15 @@ class playGame extends Phaser.Scene{
 
         // setting collisions between the player and the fire group
         this.physics.add.overlap(this.player, this.fireGroup, function(player, fire){
-
+            this.sound.play("playerBurnt", {
+                volume: 0.5
+            });
+            this.sound.play("musicBurnt", {
+                volume: 0.5
+            });
+            this.sound.play("crowdShock", {
+                volume: 0.5
+            });
             this.dying = true;
             this.player.anims.stop();
             this.player.setFrame(2);
@@ -455,7 +492,17 @@ class playGame extends Phaser.Scene{
         this.bg.tilePositionX += 0.05;
         // game over
         if(this.player.y > game.config.height){
+            this.sound.play("playerDeath", {
+                volume: 0.5
+            });
+            this.sound.play("musicLoss", {
+                volume: 0.5
+            });
+            this.sound.play("crowdSad", {
+                volume: 0.5
+            });
             this.displayScore = this.myScore;
+            this.coinCounter -= this.coinCounter;
             this.shieldCounter -= this.shieldCounter;
             this.scene.start("GameEnd", { myScore: this.displayScore });
         }
@@ -467,8 +514,11 @@ class playGame extends Phaser.Scene{
 
         
         //Shield power-up via coin pickup
-        if(this.coinCounter >= 5){
+        if(this.coinCounter >= 5 && this.shieldCounter <= 0){
             this.shieldCounter += 1;
+            this.sound.play("shieldUp", {
+                volume: 0.5
+            });
             this.coinCounter -= this.coinCounter;
         }
 
@@ -571,6 +621,9 @@ class gameEnd extends Phaser.Scene {
     }
 
     nextScene(){
+        this.sound.play("runStart", {
+            volume: 0.5
+        });
         this.scene.start("PreloadGame");
       }
 
