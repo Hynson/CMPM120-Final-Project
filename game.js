@@ -82,20 +82,28 @@ class gameStart extends Phaser.Scene {
     create(){
         let my = this.my;
         this.bg = this.add.tileSprite(0,0,game.config.width,game.config.height,"bg").setScale(2);
-        const name = this.add.bitmapText(285, 180, "rocketSquare", "Elijah Hynson's", 20);
-        const title = this.add.bitmapText(230, 200, "rocketSquare", "Volitaire", 50);
-        const objective = this.add.bitmapText(85, 300, "rocketSquare", "Wreak havoc on your virtual enemies for as long as possible.", 15);
-        const controls = this.add.bitmapText(85, 350, "rocketSquare", "A to move left    D to move right", 15);
+        const name = this.add.bitmapText(180, 180, "rocketSquare", "The (Legally Distinct) Finals", 50);
         
-        const controlsTwo = this.add.bitmapText(85, 380, "rocketSquare", "Space to fire, (While missile is flying) Space again to split!", 15);
-        const start = this.add.bitmapText(85, 450, "rocketSquare", "Press SPACE to begin the simulation",25);
+        const objective = this.add.bitmapText(370, 300, "rocketSquare", "Run for your life in this deadly game show!", 20);
+        const controls = this.add.bitmapText(370, 360, "rocketSquare", "Press SPACE to jump (DOUBLE JUMP POSSIBLE!)", 20);
+        
+        const controlsTwo = this.add.bitmapText(370, 380, "rocketSquare", "Pick up coins to get a chance of gaining a shield", 20);
+        const controlsThree = this.add.bitmapText(370, 400, "rocketSquare", "Shields destroy fire (which kill if you touch them without a shield)", 20);
+        const start = this.add.bitmapText(370, 450, "rocketSquare", "Press SPACE to start your run!",25);
+        const data = this.add.bitmapText(370, 700, "rocketSquare", "Press P to clear high score data",25);
         name.setBlendMode(Phaser.BlendModes.ADD);
-        title.setBlendMode(Phaser.BlendModes.ADD);
         objective.setBlendMode(Phaser.BlendModes.ADD);
         controls.setBlendMode(Phaser.BlendModes.ADD);
         controlsTwo.setBlendMode(Phaser.BlendModes.ADD);
+        controlsThree.setBlendMode(Phaser.BlendModes.ADD);
         start.setBlendMode(Phaser.BlendModes.ADD);
+        data.setBlendMode(Phaser.BlendModes.ADD);
         this.input.keyboard.on("keydown_SPACE", this.nextScene, this);
+        this.input.keyboard.on("keydown_P", this.clearData, this);
+    }
+
+    clearData(){
+        localStorage.removeItem("this.myHighScore");
     }
 
     nextScene(){
@@ -103,7 +111,7 @@ class gameStart extends Phaser.Scene {
     }
 
     update(){
-
+        
     }
     
 }
@@ -242,11 +250,12 @@ class playGame extends Phaser.Scene{
         this.myScore = 0;
         this.displayScore = 0;
         this.myHighScore = 0;
-        this.displayHighScore = 0;
-        this.my.text.score = this.add.bitmapText(550, 0, "rocketSquare", "Score " + this.myScore);
-        this.my.text.highScoreText = this.add.bitmapText(600, 40, "rocketSquare", 'High Score ' + localStorage.getItem("this.myHighScore"));
+        this.my.text.score = this.add.bitmapText(50, 40, "rocketSquare", "Score: " + this.myScore);
+        this.my.text.highScoreText = this.add.bitmapText(50, 80, "rocketSquare", 'High Score: ' + localStorage.getItem("this.myHighScore"));
 
         this.walkCounter = 0;
+
+        this.distanceScore = 0;
         // group with all active mountains.
         this.mountainGroup = this.add.group();
 
@@ -411,11 +420,6 @@ class playGame extends Phaser.Scene{
         
         // checking for input
         this.input.keyboard.on("keydown_SPACE", this.jump, this);
-        this.input.keyboard.on("keydown_P", this.clearData, this);
-    }
-
-    clearData(){
-        localStorage.removeItem("this.myHighScore");
     }
 
     // adding mountains
@@ -535,6 +539,13 @@ class playGame extends Phaser.Scene{
     }
 
     update(){
+        this.distanceScore += 1 
+
+        if (this.distanceScore >= 100) {
+            this.myScore += 1;
+            this.updateScore(this.myScore);
+            this.distanceScore -= this.distanceScore;
+        }
         this.bg.tilePositionX += 0.05;
         // game over
         if(this.player.y > game.config.height){
@@ -545,7 +556,7 @@ class playGame extends Phaser.Scene{
             this.displayHighScore = this.myHighScore;
             this.coinCounter -= this.coinCounter;
             this.shieldCounter -= this.shieldCounter;
-            this.scene.start("GameEnd", { myScore: this.displayScore, myHighScore: this.displayHighScore });
+            this.scene.start("GameEnd", { myScore: this.displayScore});
         }
 
         this.player.x = gameOptions.playerStartPosition;
@@ -665,10 +676,10 @@ class gameEnd extends Phaser.Scene {
     create(){
         this.bg = this.add.tileSprite(0,0,game.config.width,game.config.height,"bg").setScale(2);
         //this.scene.stop("volitaireGame");
-        const gameover = this.add.bitmapText(230, 200, "rocketSquare", "GAME OVER", 50);
-        const restart = this.add.bitmapText(85, 450, "rocketSquare", "Press SPACE to restart the simulation",25);
-        const score = this.add.bitmapText(230, 250, "rocketSquare", "Final Score: " + this.finalScore);
-        const highscore = this.add.bitmapText(230, 290, "rocketSquare", 'High Score: ' + localStorage.getItem("this.myHighScore"));
+        const gameover = this.add.bitmapText(370, 200, "rocketSquare", "Your Run is Done!", 50);
+        const restart = this.add.bitmapText(370, 450, "rocketSquare", "Press SPACE to restart your run!",25);
+        const score = this.add.bitmapText(370, 250, "rocketSquare", "Final Score: " + this.finalScore);
+        const highscore = this.add.bitmapText(370, 290, "rocketSquare", 'High Score: ' + localStorage.getItem("this.myHighScore"));
         gameover.setBlendMode(Phaser.BlendModes.ADD);
         restart.setBlendMode(Phaser.BlendModes.ADD);
         score.setBlendMode(Phaser.BlendModes.ADD);
@@ -700,7 +711,6 @@ class gameEnd extends Phaser.Scene {
       }
 
     update(){
-        this.bg.tilePositionX -= 0.3;
 
     }
 }
