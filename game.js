@@ -646,12 +646,12 @@ class playGame extends Phaser.Scene{
 
     updateScore() {
         let my = this.my;
-        my.text.score.setText("Score " + this.myScore);
+        my.text.score.setText("Score: " + this.myScore);
     }
 
     updateHighScore() {
         let my = this.my;
-        my.text.highScoreText.setText("High Score " + localStorage.getItem("this.myHighScore")); 
+        my.text.highScoreText.setText("High Score: " + localStorage.getItem("this.myHighScore")); 
     }
 }
 
