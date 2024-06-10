@@ -132,6 +132,8 @@ class preloadGame extends Phaser.Scene{
 
         this.load.audio("crowdShock2","crowdShock2.ogg");
 
+        this.load.audio("crowdCheer","crowdCheer.ogg");
+
         this.load.audio("playerDeath","BodyImpact1.wav");
 
         this.load.audio("crowdSad","crowdSad.mp3");
@@ -239,7 +241,10 @@ class playGame extends Phaser.Scene{
         //HUD
         this.myScore = 0;
         this.displayScore = 0;
+        this.myHighScore = 0;
+        this.displayHighScore = 0;
         this.my.text.score = this.add.bitmapText(550, 0, "rocketSquare", "Score " + this.myScore);
+        this.my.text.highScoreText = this.add.bitmapText(600, 40, "rocketSquare", 'High Score ' + localStorage.getItem("this.myHighScore"));
 
         this.walkCounter = 0;
         // group with all active mountains.
@@ -406,6 +411,11 @@ class playGame extends Phaser.Scene{
         
         // checking for input
         this.input.keyboard.on("keydown_SPACE", this.jump, this);
+        this.input.keyboard.on("keydown_P", this.clearData, this);
+    }
+
+    clearData(){
+        localStorage.removeItem("this.myHighScore");
     }
 
     // adding mountains
@@ -504,6 +514,7 @@ class playGame extends Phaser.Scene{
                 }
             }
         }
+
     }
 
     // the player jumps when on the ground, or once in the air as long as there are jumps left and the first jump was on the ground
@@ -530,16 +541,11 @@ class playGame extends Phaser.Scene{
             this.sound.play("playerDeath", {
                 volume: 0.5
             });
-            this.sound.play("musicLoss", {
-                volume: 0.5
-            });
-            this.sound.play("crowdSad", {
-                volume: 0.5
-            });
             this.displayScore = this.myScore;
+            this.displayHighScore = this.myHighScore;
             this.coinCounter -= this.coinCounter;
             this.shieldCounter -= this.shieldCounter;
-            this.scene.start("GameEnd", { myScore: this.displayScore });
+            this.scene.start("GameEnd", { myScore: this.displayScore, myHighScore: this.displayHighScore });
         }
 
         this.player.x = gameOptions.playerStartPosition;
@@ -562,6 +568,14 @@ class playGame extends Phaser.Scene{
             this.shield.y = -1000;
             this.shield.visible = false;
         }
+
+  
+        if (this.myScore > localStorage.getItem("this.myHighScore")) 
+        { 
+            localStorage.setItem("this.myHighScore", this.myScore);
+            this.updateHighScore();
+        }
+
 
         // recycling platforms
         let minDistance = game.config.width;
@@ -623,6 +637,11 @@ class playGame extends Phaser.Scene{
         let my = this.my;
         my.text.score.setText("Score " + this.myScore);
     }
+
+    updateHighScore() {
+        let my = this.my;
+        my.text.highScoreText.setText("High Score " + localStorage.getItem("this.myHighScore")); 
+    }
 }
 
 class gameEnd extends Phaser.Scene {
@@ -649,10 +668,30 @@ class gameEnd extends Phaser.Scene {
         const gameover = this.add.bitmapText(230, 200, "rocketSquare", "GAME OVER", 50);
         const restart = this.add.bitmapText(85, 450, "rocketSquare", "Press SPACE to restart the simulation",25);
         const score = this.add.bitmapText(230, 250, "rocketSquare", "Final Score: " + this.finalScore);
+        const highscore = this.add.bitmapText(230, 290, "rocketSquare", 'High Score: ' + localStorage.getItem("this.myHighScore"));
         gameover.setBlendMode(Phaser.BlendModes.ADD);
         restart.setBlendMode(Phaser.BlendModes.ADD);
         score.setBlendMode(Phaser.BlendModes.ADD);
+        highscore.setBlendMode(Phaser.BlendModes.ADD);
         this.input.keyboard.on("keydown_SPACE", this.nextScene, this);
+
+        if (localStorage.getItem("this.myHighScore") <= this.finalScore){
+            this.sound.play("newHighScore", {
+                volume: 0.5
+            });
+
+            this.sound.play("crowdCheer", {
+                volume: 0.5
+            });
+        } else {
+            this.sound.play("musicLoss", {
+                volume: 0.5
+            });
+            
+            this.sound.play("crowdSad", {
+                volume: 0.5
+            });
+        }
     }
 
     nextScene(){
