@@ -100,9 +100,6 @@ class gameStart extends Phaser.Scene {
 
     nextScene(){
       this.scene.start("PreloadGame");
-      this.sound.play("runStart", {
-        volume: 0.5
-    });
     }
 
     update(){
@@ -133,6 +130,8 @@ class preloadGame extends Phaser.Scene{
 
         this.load.audio("crowdShock","crowdShock.ogg");
 
+        this.load.audio("crowdShock2","crowdShock2.ogg");
+
         this.load.audio("playerDeath","BodyImpact1.wav");
 
         this.load.audio("crowdSad","crowdSad.mp3");
@@ -148,6 +147,11 @@ class preloadGame extends Phaser.Scene{
         this.load.audio("musicBurnt","musicBurnt.ogg");
 
         this.load.audio("musicLoss","musicLoss.ogg");
+
+        this.load.audio("jump","jump.ogg");
+
+        this.load.audio("walk","footstep_concrete_004.ogg")
+        
       
         // player is a sprite sheet made by 24x48 pixels
         this.load.spritesheet("player", "player.png", {
@@ -210,7 +214,9 @@ class preloadGame extends Phaser.Scene{
             frameRate: 15,
             repeat: -1
         });
-
+        this.sound.play("runStart", {
+            volume: 0.5
+          });
         this.scene.start("PlayGame");
     }
 }
@@ -235,6 +241,7 @@ class playGame extends Phaser.Scene{
         this.displayScore = 0;
         this.my.text.score = this.add.bitmapText(550, 0, "rocketSquare", "Score " + this.myScore);
 
+        this.walkCounter = 0;
         // group with all active mountains.
         this.mountainGroup = this.add.group();
 
@@ -309,7 +316,7 @@ class playGame extends Phaser.Scene{
         this.player.setGravityY(gameOptions.playerGravity);
         this.player.setDepth(2);
 
-        this.shield = this.add.sprite(this.player.x, this.player.y, 'shield');
+        this.shield = this.physics.add.sprite(this.player.x, this.player.y, 'shield');
         this.shield.setScale(0.70);
         this.shield.setDepth(2);
         this.shield.visible = false;
@@ -319,7 +326,13 @@ class playGame extends Phaser.Scene{
 
         // setting collisions between the player and the platform group
         this.platformCollider = this.physics.add.collider(this.player, this.platformGroup, function(){
-
+            this.walkCounter += 1
+            if(this.walkCounter == 10){
+            this.sound.play("walk", {
+                volume: 0.5
+            });
+            this.walkCounter -= this.walkCounter; 
+            }
             // play "run" animation if the player is on a platform
             if(!this.player.anims.isPlaying){
                 this.player.anims.play("run");
@@ -347,6 +360,26 @@ class playGame extends Phaser.Scene{
                     this.coinGroup.remove(coin);
                 }
             });
+
+        }, null, this);
+
+
+        // setting collisions between the shield and the fire group
+        this.physics.add.overlap(this.shield, this.fireGroup, function(shield, fire){
+            this.sound.play("playerBurnt", {
+                volume: 0.5
+            });
+            this.sound.play("shieldDown", {
+                volume: 0.5
+            });
+            this.sound.play("crowdShock2", {
+                volume: 0.8
+            });
+            this.coinCounter -= this.coinCounter;
+            this.shieldCounter -= this.shieldCounter;
+
+            this.fireGroup.killAndHide(fire);
+            this.fireGroup.remove(fire);
 
         }, null, this);
 
@@ -482,7 +515,9 @@ class playGame extends Phaser.Scene{
             }
             this.player.setVelocityY(gameOptions.jumpForce * -1);
             this.playerJumps ++;
-
+            this.sound.play("jump", {
+                volume: 0.5
+            });
             // stops animation
             this.player.anims.stop();
         }
@@ -509,10 +544,6 @@ class playGame extends Phaser.Scene{
 
         this.player.x = gameOptions.playerStartPosition;
 
-        this.shield.x = this.player.x;
-        this.shield.y = this.player.y;
-
-        
         //Shield power-up via coin pickup
         if(this.coinCounter >= 5 && this.shieldCounter <= 0){
             this.shieldCounter += 1;
@@ -523,8 +554,12 @@ class playGame extends Phaser.Scene{
         }
 
         if(this.shieldCounter >= 1){
+            this.shield.x = this.player.x;
+            this.shield.y = this.player.y;
             this.shield.visible = true;
         } else {
+            this.shield.x = -1000;
+            this.shield.y = -1000;
             this.shield.visible = false;
         }
 
@@ -621,9 +656,7 @@ class gameEnd extends Phaser.Scene {
     }
 
     nextScene(){
-        this.sound.play("runStart", {
-            volume: 0.5
-        });
+
         this.scene.start("PreloadGame");
       }
 
