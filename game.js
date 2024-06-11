@@ -35,13 +35,13 @@ let gameOptions = {
     playerStartPosition: 200,
 
     // consecutive jumps allowed
-    jumps: 2,
+    jumps: 3,
 
     // % of probability a coin appears on the platform
-    coinPercent: 25,
+    coinPercent: 5,
 
     // % of probability a fire appears on the platform
-    firePercent: 25,
+    firePercent: 0,
 }
 
 window.onload = function() {
@@ -85,7 +85,7 @@ class gameStart extends Phaser.Scene {
         const name = this.add.bitmapText(180, 180, "rocketSquare", "The (Legally Distinct) Finals", 50);
         
         const objective = this.add.bitmapText(370, 300, "rocketSquare", "Run for your life in this deadly game show!", 20);
-        const controls = this.add.bitmapText(370, 360, "rocketSquare", "Press SPACE to jump (DOUBLE JUMP POSSIBLE!)", 20);
+        const controls = this.add.bitmapText(370, 360, "rocketSquare", "Press SPACE to jump (TRIPLE JUMP POSSIBLE!)", 20);
         
         const controlsTwo = this.add.bitmapText(370, 380, "rocketSquare", "Pick up coins to get a chance of gaining a shield", 20);
         const controlsThree = this.add.bitmapText(370, 400, "rocketSquare", "Shields destroy fire (which kill if you touch them without a shield)", 20);
@@ -254,7 +254,7 @@ class playGame extends Phaser.Scene{
         this.my.text.highScoreText = this.add.bitmapText(50, 80, "rocketSquare", 'High Score: ' + localStorage.getItem("this.myHighScore"));
 
         this.walkCounter = 0;
-
+        this.skillLevel = 0;
         this.distanceScore = 0;
         // group with all active mountains.
         this.mountainGroup = this.add.group();
@@ -541,8 +541,15 @@ class playGame extends Phaser.Scene{
     update(){
         this.distanceScore += 1 
 
+        if (this.skillLevel == 50) {
+            gameOptions.coinPercent += 5;
+            gameOptions.firePercent += 10;
+            this.skillLevel -= this.skillLevel;
+        }
+
         if (this.distanceScore >= 100) {
-            this.myScore += 1;
+            this.myScore += 2;
+            this.skillLevel += 2;
             this.updateScore(this.myScore);
             this.distanceScore -= this.distanceScore;
         }
@@ -553,6 +560,8 @@ class playGame extends Phaser.Scene{
                 volume: 0.5
             });
             this.displayScore = this.myScore;
+            gameOptions.coinPercent = 5;
+            gameOptions.firePercent = 0;
             this.displayHighScore = this.myHighScore;
             this.coinCounter -= this.coinCounter;
             this.shieldCounter -= this.shieldCounter;
